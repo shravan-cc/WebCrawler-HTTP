@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "Project which implements knowledge from the HTTP Networking",
   "main": "main.js",
+  "type": "module",
   "scripts": {
-    "start": "node main.js",
+    "start": "node --no-warnings main.js",
     "test": "vitest"
   },
   "author": "",

@@ -32,3 +32,25 @@ export function getUrlsFromHtml(htmlBody, baseURL) {
   }
   return url;
 }
+
+export async function crawlURl(baseURL) {
+  try {
+    const response = await fetch(baseURL);
+
+    if (response.status > 399) {
+      console.log(
+        `Error in url with status code ${response.status} on ${baseURL}`
+      );
+      return;
+    }
+
+    if (response.headers.get("content-type") !== "text/html") {
+      console.log(`Content not in html on ${baseURL}`);
+      return;
+    }
+
+    console.log(`Crawling URL: ${await response.text()}`);
+  } catch (error) {
+    console.log(`Fetch Failed on ${baseURL}`);
+  }
+}
