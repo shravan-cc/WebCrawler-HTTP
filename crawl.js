@@ -33,24 +33,45 @@ export function getUrlsFromHtml(htmlBody, baseURL) {
   return url;
 }
 
-export async function crawlURl(baseURL) {
+export async function crawlURl(baseURL, currentURL, pages) {
+  const baseURLObj = new URL(baseURL);
+  const currentURLObj = new URL(currentURL);
+  if (baseURLObj.hostname !== currentURLObj.hostname) {
+    return pages;
+  }
+
+  const normalizedURL = normalize(currentURL);
+  if (pages[normalizedURL] > 0) {
+    pages[normalizedURL]++;
+    return pages;
+  }
+
+  pages[normalizedURL] = 1;
+
+  console.log(`Actively Crawling: ${currentURL}`);
   try {
-    const response = await fetch(baseURL);
+    const response = await fetch(currentURL);
 
     if (response.status > 399) {
       console.log(
-        `Error in url with status code ${response.status} on ${baseURL}`
+        `Error in url with status code ${response.status} on ${currentURL}`
       );
-      return;
+      return pages;
     }
 
-    if (response.headers.get("content-type") !== "text/html") {
-      console.log(`Content not in html on ${baseURL}`);
-      return;
+    if (!response.headers.get("content-type").includes("text/html")) {
+      console.log(`Content not in html on ${currentURL}`);
+      return pages;
     }
 
-    console.log(`Crawling URL: ${await response.text()}`);
+    const htmlBody = await response.text();
+    const nextUrls = getUrlsFromHtml(htmlBody, baseURL);
+
+    for (const urls of nextUrls) {
+      pages = await crawlURl(baseURL, urls, pages);
+    }
   } catch (error) {
-    console.log(`Fetch Failed on ${baseURL}`);
+    console.log(`Fetch Failed on ${currentURL}`);
   }
+  return pages;
 }
